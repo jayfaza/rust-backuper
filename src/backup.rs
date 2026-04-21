@@ -1,6 +1,5 @@
 use std::fs::File;
-use std::fs::read;
-use std::io::{self, Write};
+use std::io::{self, BufReader};
 use std::path::Path;
 use zip::write::{SimpleFileOptions, ZipWriter};
 
@@ -26,13 +25,10 @@ where
             .to_str()
             .unwrap();
         on_progress(relative_path);
-        if os_path.is_dir() {
-            zip_writer.add_directory(relative_path, archive_options)?;
-        } else {
-            zip_writer.start_file(relative_path, archive_options)?;
-            let content = read(os_path)?;
-            zip_writer.write_all(&content)?;
-        }
+        zip_writer.start_file(relative_path, archive_options)?;
+        let file = File::open(os_path)?;
+        let mut reader = BufReader::new(file);
+        io::copy(&mut reader, &mut zip_writer)?;
     }
     zip_writer.finish()?;
 

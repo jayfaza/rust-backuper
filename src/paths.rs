@@ -1,6 +1,5 @@
 use chrono::prelude::*;
-use shellexpand;
-use std::env::{self, args};
+use std::env;
 use std::path::Path;
 use walkdir::{IntoIter, WalkDir};
 
@@ -12,40 +11,68 @@ pub fn create_folder_iterator(folder: &str) -> IntoIter {
 
 pub fn get_folder_name(path: &str) -> Result<String, String> {
     let expanded = shellexpand::tilde(path);
-    dbg!(&expanded);
     let os_path = Path::new(expanded.as_ref());
     if !os_path.is_dir() {
-        dbg!(os_path);
         return Err(format!("'{}' is not a valid directory", path));
     }
 
-    if os_path.is_relative() {
-        Ok(path.to_string())
-    } else {
-        Ok(os_path.file_name().unwrap().to_str().unwrap().to_string())
-    }
+    Ok(os_path.file_name().unwrap().to_str().unwrap().to_string())
 }
 
 pub fn get_files_list(folder_iter: IntoIter) -> Vec<String> {
-    let excluded = [
-        "obj", "out", "pdb", "lib", "cache", "pyc", "pyo", "class", "log", "pack", "d", "o",
-        "rlib", "rmeta", "h", "sample", "so", "bin", "a",
+    let excluded_dirs = [
+        "target",
+        "__pycache__",
+        ".pytest_cache",
+        ".mypy_cache",
+        ".ruff_cache",
+        "node_modules",
+        ".next",
+        ".nuxt",
+        ".turbo",
+        "dist",
+        ".parcel-cache",
+        "build",
+        ".gradle",
+        ".git",
+        ".cache",
+        ".tmp",
+        "tmp",
+        ".venv",
+        "venv",
+    ];
+
+    let excluded_exts = [
+        "o", "obj", "a", "so", "dylib", "dll", "lib", "pdb", "rlib", "rmeta", "d", "class", "pyc",
+        "pyo", "sample",
     ];
 
     let mut files = Vec::new();
 
     for entry in folder_iter.filter_map(|e| e.ok()) {
-        if let Some(p) = entry.path().to_str() {
-            let path = entry.path();
+        let path = entry.path();
 
-            let is_excluded = path
-                .extension()
-                .and_then(|e| e.to_str())
-                .is_some_and(|e| excluded.contains(&e));
+        let in_excluded_dir = path.components().any(|c| {
+            c.as_os_str()
+                .to_str()
+                .is_some_and(|s| excluded_dirs.contains(&s))
+        });
 
-            let is_none = path.extension().is_none();
+        if in_excluded_dir {
+            continue;
+        }
 
-            if !is_excluded && !is_none {
+        let has_excluded_ext = path
+            .extension()
+            .and_then(|e| e.to_str())
+            .is_some_and(|e| excluded_exts.contains(&e));
+
+        if has_excluded_ext {
+            continue;
+        }
+
+        if path.is_file() {
+            if let Some(p) = path.to_str() {
                 files.push(p.to_string());
             }
         }
@@ -99,6 +126,10 @@ pub fn get_dst_path(args: &Args) -> Result<String, String> {
 
         Ok(format!("{}/{}", absolute_path, datetime))
     } else {
-        Ok(format!("/home/jayfaza/backup/{}", datetime))
+        Ok(format!(
+            "{}/{}",
+            shellexpand::tilde("~/backup").as_ref(),
+            datetime
+        ))
     }
 }

@@ -1,7 +1,6 @@
 use clearscreen;
 use colored::Colorize;
 use std::fs::metadata;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 pub fn clear_screen() {
     clearscreen::clear().unwrap();

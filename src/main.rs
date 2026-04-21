@@ -9,12 +9,7 @@ use clap::Parser;
 use indicatif::{ProgressBar, ProgressStyle};
 use paths::*;
 use std::time::Duration;
-use std::{
-    fmt::format,
-    os::unix::process,
-    process::{Command, exit},
-    time::Instant,
-};
+use std::{process::exit, time::Instant};
 use utils::clear_screen;
 
 use crate::utils::show_results;
