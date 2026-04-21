@@ -12,10 +12,4 @@ pub struct Args {
         help = "Destination folder. (default: ~/backup)"
     )]
     pub dst_directory: Option<String>,
-
-    #[arg(
-        long = "nvim",
-        help = "The standard path to neovim config: '~/.config/nvim'"
-    )]
-    pub is_nvim: bool,
 }

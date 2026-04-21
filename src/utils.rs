@@ -33,9 +33,9 @@ pub fn show_results(files: &Vec<String>, src: &str, dst: &str, time: f64) {
         dst.to_string().green().bold()
     );
     println!(
-        "  {}: {:.4} MB",
+        "  {}: {} MB",
         "Final weight".to_string().green().bold(),
-        size_in_mbytes.to_string().green().bold()
+        format!("{:.1}", size_in_mbytes).green().bold()
     );
 }
 

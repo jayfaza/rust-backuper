@@ -82,12 +82,14 @@ pub fn get_files_list(folder_iter: IntoIter) -> Vec<String> {
 }
 
 pub fn get_src_path(args: &Args) -> Result<String, String> {
-    if args.is_nvim {
-        return Ok(format!("{}", shellexpand::tilde("~/.config/nvim")));
-    }
-
     if let Some(value) = &args.src_directory {
         let path = value;
+        let config_path_str = format!("{}/{}", shellexpand::tilde("~/.config"), path);
+        let config_path_sys = Path::new(&config_path_str);
+        if config_path_sys.is_dir() {
+            return Ok(format!("{}", config_path_str));
+        }
+
         let resolved = env::current_dir()
             .map_err(|e| format!("Failed to get current directory: {e}"))?
             .join(&path);
